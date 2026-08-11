@@ -1,0 +1,1382 @@
+<import name="input-method" src="../../components/InputMethod/InputMethod.ux"/>
+<template>
+  <stack class="stack">
+    <div class="main">
+      <div class="top">
+        <div class="topl" if="{{login===1}}">
+          <text class="title" if="{{login===1}}" value="登录以继续"/>
+        </div>
+        <div class="topl" if="{{login===0}}">
+          <text class="title" if="{{title===1&&ShowAnnouncement===0}}" value="Chat"/>
+          <text class="title" if="{{title===2}}" value="群组"/>
+          <text class="title" if="{{title===3&&infof===0}}" value="好友"/>
+          <text class="text-run-scroll" if="{{title===3 && infof===1}}" value="{{talkwith}}"/>
+          <text class="title" if="{{title===4&&about===0&&user===0}}" value="设置"/>
+          <text class="title" if="{{title===4&&about===1}}" value="关于"/>
+          <text class="title" if="{{title===1&&ShowAnnouncement===1}}" value="公告"/>
+          <text class="title" if="{{title===4&&user===1&&change0===0}}" value="个人信息"/>
+          <text class='title' if="{{title===4&&change0===1}}" value="更改用户名"/>
+        </div>
+        <div class="topr">
+          <text class="time" value="{{time}}"/>
+        </div>
+      </div>
+
+      <div class="front" if="{{login===0}}">
+        <text class="mbtnl" if="{{bar_act===1&&ShowAnnouncement===0}}" value="公告" @click="Announcement"/>
+        <text class="mbtnl" if="{{bar_act===2}}" value="更多" @click="Joingroup"/>
+        <text class="mbtnl" if="{{bar_act===3&&infof===0}}" value="添加" @click="Addfriends"/>
+        <text class="mbtnl" if="{{bar_act===1&&ShowAnnouncement===1||bar_act===4&&(about===1||user===1)||bar_act===3&&infof===1}}" value="返回" @click="Back"/>
+        <text class="mbtnl" if="{{title===4}}"/>
+        <text class="reloadtext" if="{{reload===1}}" value="刷新中"/>
+        <text class='reloadtext-sus' if="{{reload===100}}" value="清除缓存成功"/>
+        <text class='reloadtext-sus' if="{{reload===200}}" value="发送成功"/>
+        <text class='reloadtext-sus' if="{{reload===200.1}}" value="登录成功"/>
+        <text class='reloadtext-sus' if="{{reload===200.2}}" value="修改成功"/>
+        <text class='reloadtext-wran' if="{{reload===400}}" value="内容不能为空"/>
+        <text class='reloadtext-wran' if="{{reload===401}}" value="用户名或密码错误"/>
+        <text class='reloadtext-wran' if="{{reload===502}}" value="网络错误"/>
+        <text class="mbtnr" if="{{bar_act!==4&&(user===1||change0===0)}}" value="刷新" @click="Reload"/>
+        <text class="mbtnr" if="{{title===4}}"/>
+      </div>
+      <div class="front" if="{{login===1}}"></div>
+
+      <div class="scroll" if="{{login===1}}">
+        <div class="midlogin" if="{{bar_act===1}}">
+          <text class="vertext" value="用户名"/>
+          <div class="input-item" @click="changeState0">
+            <text class="vertext-s" value="{{usertextValue}}"/>
+          </div>
+          <text class="vertext" value="密码"/>
+          <div class="input-item" @click="changeState1">
+            <text class="vertext-s" value="{{passwordtextValue}}"/>
+          </div>
+          <div class="loginunder">
+            <div class="copythat" @click="Login">
+              <text class="loginbartext" value="登录"/>
+            </div>
+          </div>
+        </div>
+        <div class="midlogin" if="{{bar_act===2}}">
+          <text class="vertext" value="网站未提供对应接口"/>
+        </div>
+      </div>
+      
+      <div class="mid" if="{{login===0}}">
+        <div class="" if="{{ShowAnnouncement===1}}"></div>
+
+        <list class="mid0" bounces="true" if="{{bar_act===1&&ShowAnnouncement===0}}">
+          <list-item for="{{messagelist}}" class="message" type="msg" @click="ShowAll($item)">
+            <div class="messagetop">
+              <text class="messagewho">{{$item.name||"用户"}}</text>
+              <text class="messagewhen">{{$item.time}}</text>
+            </div>
+            <text class="messagewhat">{{$item.what}}</text>
+          </list-item>
+        </list>
+
+        <div class='mid0' if="{{bar_act===2&&error===401}}">
+          <text class='opition' value="{{json0}}"/>
+          <text class='vertext-s' value="网站的问题，找站长去"/>
+        </div>
+        <list class="mid0" if="{{bar_act===2&&error===200}}">
+          <list-item for="{{grouplist}}" class='message' type="grp" @click="IntoGrp($item.group_id)">
+            <div class='messagetop'>
+              <text class='messagewho'>{{$item.group_id}}</text>
+              <text class='messagewhen'>{{$item.member_count}}人</text>
+            </div>
+            <text class='messagewhat'>{{$item.name}}</text>
+          </list-item>
+        </list>
+
+        <list class="mid0" if="{{bar_act===3 && infof===0}}">
+          <list-item for="{{friendlist}}" class='message' type="frd" @click="Intofrd($item.id)">
+            <div class='messagetop'>
+              <text class='messagewho'>{{$item.name}}</text>
+              <text class='messagewhen0'if="{{$item.online}}">在线</text>
+              <text class='messagewhen'if="{{!$item.online}}">离线</text>
+            </div>
+            <text class='more'>{{$item.id}}</text>
+          </list-item>
+        </list>
+        <list class="mid0" bounces="true" if="{{bar_act===3 && infof===1}}">
+          <list-item for="{{privatelist}}" class="message" type="pvt" @click="ShowAll($item)">
+            <div class="messagetop">
+              <text class="messagewho">{{$item.name}}</text>
+              <text class="messagewhen">{{$item.time}}</text>
+            </div>
+            <text class="messagewhat">{{$item.what}}</text>
+          </list-item>
+        </list>
+
+        <div class="settings-u"if="{{bar_act===4 && about===0 && user===0}}">
+          <div class="settings-item" @click="User">
+            <div class="dev">
+              <text class="vertext-m" value="个人信息"/>
+            </div>
+          </div>
+          <div class="settings-item" @click="About">
+            <div class="dev">
+              <text class="vertext-m" value="关于"/>
+            </div>
+          </div>
+          <div class="settings-item" @click="Clear">
+              <text class="vertext-m-yellow" value="清除缓存"/>
+          </div>
+        </div>
+
+        <div class="settings-u" if="{{bar_act===4&&user===1&&change0===0}}">
+          <div class="settings-item0">
+            <text class="vertext" value="用户名"/>
+          </div>
+          <div class="settings-item">
+              <text class="vertext-m" value="{{usernameinfo}}"/>
+          </div>
+          <div class="settings-item" @click="Logout">
+            <text class="vertext-m-red" value="退出登录"/>
+          </div>
+        </div>
+
+        <div class="settings-u" if="{{bar_act===4&&about===1}}">
+          <div class="settings">
+            <div class="dev">
+              <image class="icon-1" src="/common/logo.png"/>
+              <div class="dev-name">
+                <text class="vertext" value="{{appName}}"/>
+                <text class="version" value="{{versionName}}({{versionCode}})"/>
+              </div>
+            </div>
+            <text class="more" value="本应用基于开源项目GCT for Vela"/>
+            <text class="opition" value="GitHub: FIX-114514/General-Chatroom-Template-For-VelaOS"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="under">
+      <div class='bar-0' if="{{about===0&&login===0&&(bar_act===1&&ShowAnnouncement===0||bar_act===3&&infof===1)}}">
+        <div class='IO' if="{{show}}" @click="ShowInput">
+          <text class='vertext-s' value="▼"/>
+        </div>
+        <div class="input-item-0" if="{{show&&bar_act===1}}" @click="changeState">
+          <text class="vertext-s" value="{{textValue}}"/>
+        </div>
+        <div class="input-item-0" if="{{show&&bar_act===3}}" @click="changeState_2">
+          <text class="vertext-s" value="{{textValuePrv}}"/>
+        </div>
+        <div class="copythat0" if="{{show&&bar_act===1}}" @click="SendPubMsg">
+          <text class="vertext-s" value="发送"/>
+        </div>
+        <div class="copythat0" if="{{show&&bar_act===3}}" @click="SendPrvMsg">
+          <text class="vertext-s" value="发送"/>
+        </div>
+        <div class="input-item-0-s" if="{{!show}}" @click="ShowInput">
+          <text class="vertext-ss" value="▲"/>
+        </div>
+      </div>
+
+      <div class="bar" if="{{about===0&&login==0}}">
+        <div class="baritem">
+          <div class="baract" if="{{bar_act===1}}">
+            <text class="bartext" value="主页"/>
+          </div>
+          <div class="barnoact" @click="mainpage" else>
+            <text class="bartext" value="主页"/>
+          </div>
+        </div>
+        <div class="baritem">
+          <div class="baract" if="{{bar_act===2}}">
+            <text class="bartext" value="群组"/>
+          </div>
+          <div class="barnoact" @click="grouppage" else>
+            <text class="bartext" value="群组"/>
+          </div>
+        </div>
+        <div class="baritem">
+          <div class="baract" if="{{bar_act===3}}">
+            <text class="bartext" value="好友"/>
+          </div>
+          <div class="barnoact" @click="friendpage" else>
+            <text class="bartext" value="好友"/>
+          </div>
+        </div>
+        <div class="baritem">
+          <div class="baract" if="{{bar_act===4}}">
+            <text class="bartext" value="设置"/>
+          </div>
+          <div class="barnoact" @click="settingpage" else>
+            <text class="bartext" value="设置"/>
+          </div>
+        </div>
+      </div>
+      <div class="barlogin" if="{{login===1}}">
+        <div class="baritem">
+          <div class="baract" if="{{bar_act===1}}">
+            <text class="bartext" value="登录"/>
+          </div>
+          <div class="barnoact" @click="mainpage" else>
+            <text class="bartext" value="登录"/>
+          </div>
+        </div>
+        <div class="baritem">
+          <div class="baract" if="{{bar_act===2}}">
+            <text class="bartext" value="注册"/>
+          </div>
+          <div class="barnoact" @click="grouppage" else>
+            <text class="bartext" value="注册"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mask" if="{{really||showall}}">
+      <div class="settings-item-logout-say" if="{{really}}">
+        <div class="settings-item-logout-say-btn">
+          <div>
+            <text class="vertext-s" value="取消" @click="NLogout"/>
+          </div>
+          <div>
+            <text class="vertext-s-red" value="确定" @click="RLogout"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mask" if="{{showall}}" @click="ShowAll">
+      <div class="message0">
+        <div class="messagetop">
+          <text class="messagewho">{{msg0.name}}</text>
+          <text class="messagewhen">{{msg0.time}}</text>
+        </div>
+        <scroll class="message1" bounces="true" scroll-y="true">
+          <text class="messagewhat0">{{msg0.what}}</text>
+        </scroll>
+      </div>
+    </div>
+
+    <div class="maskinput" show="{{hide===false}}" @click="changeState">
+      <div class="input-item">
+        <text class="vertext" if="{{login===1&&inputswitch===1}}" value="{{usertextValue}}_"/>
+        <text class="vertext" if="{{login===1&&inputswitch===2}}" value="{{passwordtextValue}}_"/>
+        <text class="vertext" if="{{bar_act===1&&login===0&&ShowAnnouncement===0}}" value="{{textValue}}_"/>
+        <text class="vertext" if="{{bar_act===2}}" value="{{textValueGrp}}_"/>
+        <text class="vertext" if="{{bar_act===3&&infof===1}}" value="{{textValuePrv}}_"/>
+        <text class="vertext" if="{{user===1}}" value="{{input_textValue}}_"/>
+      </div>
+    </div>
+
+    <input-method
+      hide="{{hide}}"
+      keyboardtype="{{keboardtype}}"
+      maxlength="5"
+      vibratemode="{{vibratemode}}"
+      screentype="{{screentype}}"
+      @visibility-change="onVisibilityChange"
+      @key-down="onKeyDown"
+      @delete="onDelete"
+      @complete="onComplete">
+    </input-method>
+  </stack>
+</template>
+
+<script>
+import fetch from "@system.fetch"
+import device from "@system.device"
+import storage from "@system.storage"
+import crypto from "@system.crypto"
+import app from "@system.app"
+
+const BASE_URL = ""
+
+// 输入框状态枚举
+const INPUT_STATE = {
+  NONE: 0,
+  USERNAME: 1,
+  PASSWORD: 2,
+  CHAT_MSG: 3,
+  CHAT_GRPMSG: 4,
+  CHAT_PRVMSG: 5,
+  CHANGE_NAME: 9
+}
+
+export default {
+  private: {
+    // UI 状态
+    login: 0,
+    title: 1,
+    reload: 0,
+    bar_act: 1,
+    about: 0,
+    really: false,
+    ShowAnnouncement: 0,
+    user: 0,
+    change0: 0,
+    infof: 0,
+    error: 0,
+    hide: true,
+    show: false,
+    showall: false,
+    time: "",
+    
+    // 数据与缓存
+    api_key: "",
+    username: "",
+    password: "",
+    sendmessage: "",
+    sendmessageGrp: "",
+    sendmessagePrv: "",
+    groupid: "",
+    publicLastId: '',
+    privateLastId: '',
+    currentFrdID: '',
+    talkwith: '',
+    messagelist: [],
+    privatelist: [],
+    grouplist: [],
+    friendlist: [],
+    msg0: {name:"",time:"",what:""},
+    
+    // 输入相关
+    inputswitch: 0,
+    usertextValue: "",
+    passwordtextValue: "",
+    textValue: "",
+    textValueGrp: "",
+    textValuePrv: "",
+    input_textValue: "",
+    change_username: "",
+    usernameinfo: "",
+    
+    // 应用信息
+    appName: "",
+    versionName: "",
+    versionCode: "",
+    
+    // 键盘配置
+    keyboardtype: "QWERTY",
+    vibratemode: "short",
+    screentype: "rect"
+  },
+
+  // ================= 生命周期 =================
+  onInit() {
+    this._initAppInfo()
+    this._startClock()
+    this._checkLoginState()
+  },
+  onShow() {
+    if (this.login === 0) {
+      if (this.bar_act === 1) this.fetchMessages('public', false)
+    }
+  },
+
+  // ================= 初始化辅助方法 =================
+  _initAppInfo() {
+    try {
+      const info = app.getInfo()
+      this.appName = info.name
+      this.versionName = info.versionName
+      this.versionCode = info.versionCode
+    } catch (e) {
+      console.error('获取应用信息失败:', e)
+    }
+  },
+
+  _startClock() {
+    const updateTime = () => {
+      const now = new Date()
+      this.time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    }
+    updateTime()
+    setInterval(updateTime, 1000)
+  },
+
+  _checkLoginState() {
+    if (this.api_key) {
+      this.login = 0
+      this.fetchMessages('public', false)
+      return
+    }
+    storage.get({
+      key: "api_key",
+      success: (data) => {
+        if (data && data.value) {
+          this.api_key = data.value
+          this.login = 0
+          this.fetchMessages('public', false)
+        } else {
+          this.login = 1
+        }
+      },
+      fail: () => { this.login = 1 }
+    })
+  },
+
+  // ================= 键盘与输入处理 =================
+  onVisibilityChange(evt) {
+    console.log("键盘显示状态变更:", evt.visible)
+  },
+
+  onKeyDown(evt) {
+    console.log("按键事件:", evt.key)
+  },
+
+  onDelete() {
+    const map = {
+      [INPUT_STATE.USERNAME]: 'usertextValue',
+      [INPUT_STATE.PASSWORD]: 'passwordtextValue',
+      [INPUT_STATE.CHAT_MSG]: 'textValue',
+      [INPUT_STATE.CHAT_GRPMSG]: 'textValueGrp',
+      [INPUT_STATE.CHAT_PRVMSG]: 'textValuePrv',
+      [INPUT_STATE.CHANGE_NAME]: 'input_textValue'
+    }
+    const field = map[this.inputswitch]
+    if (field) {
+      this[field] = this[field].slice(0, -1)
+      this._syncInputData()
+    }
+  },
+
+  onComplete(evt) {
+    const content = evt.detail.content || ''
+    const map = {
+      [INPUT_STATE.USERNAME]: 'usertextValue',
+      [INPUT_STATE.PASSWORD]: 'passwordtextValue',
+      [INPUT_STATE.CHAT_MSG]: 'textValue',
+      [INPUT_STATE.CHAT_GRPMSG]: 'textValueGrp',
+      [INPUT_STATE.CHAT_PRVMSG]: 'textValuePrv',
+      [INPUT_STATE.CHANGE_NAME]: 'input_textValue'
+    }
+    const field = map[this.inputswitch]
+    if (field) {
+      this[field] += content
+      this._syncInputData()
+    }
+  },
+
+  _syncInputData() {
+    if (this.inputswitch === INPUT_STATE.USERNAME) this.username = this.usertextValue
+    if (this.inputswitch === INPUT_STATE.PASSWORD) this.password = this.passwordtextValue
+    if (this.inputswitch === INPUT_STATE.CHAT_MSG) this.sendmessage = this.textValue
+    if (this.inputswitch === INPUT_STATE.CHAT_GRPMSG) this.sendmessageGrp = this.textValueGrp
+    if (this.inputswitch === INPUT_STATE.CHAT_PRVMSG) this.sendmessagePrv = this.textValuePrv
+    if (this.inputswitch === INPUT_STATE.CHANGE_NAME) this.change_username = this.input_textValue
+  },
+
+  _toggleKeyboard(targetState) {
+    if (this.hide) {
+      this.hide = false
+      this.inputswitch = targetState
+    } else {
+      this.hide = true
+      this.inputswitch = INPUT_STATE.NONE
+    }
+  },
+
+  changeState() { this._toggleKeyboard(INPUT_STATE.CHAT_MSG) },
+  changeState_1() { this._toggleKeyboard(INPUT_STATE.CHAT_GRPMSG) },
+  changeState_2() { this._toggleKeyboard(INPUT_STATE.CHAT_PRVMSG) },
+  changeState0() { this._toggleKeyboard(INPUT_STATE.USERNAME) },
+  changeState1() { this._toggleKeyboard(INPUT_STATE.PASSWORD) },
+  changeStateU() { this._toggleKeyboard(INPUT_STATE.CHANGE_NAME) },
+
+  // ================= 页面导航 =================
+  mainpage() {
+    this.title = 1
+    this.bar_act = 1
+    this.infof = 0
+    this.ShowAnnouncement = 0
+    this.user = 0
+    this.change0 = 0
+    this.about = 0
+    this.fetchMessages('public',true)
+  },
+  grouppage() {
+    this.title = 2
+    this.bar_act = 2
+    this.infof = 0
+    this.ShowAnnouncement = 0
+    this.user = 0
+    this.change0 = 0
+    this.about = 0
+    this.fetchGrpList()
+  },
+  friendpage() {
+    this.title = 3
+    this.bar_act = 3
+    this.infof = 0
+    this.ShowAnnouncement = 0
+    this.user = 0
+    this.change0 = 0
+    this.about = 0
+    this.fetchFrdList()
+  },
+  settingpage() {
+    this.title = 4
+    this.bar_act = 4
+    this.infof = 0
+    this.ShowAnnouncement = 0
+    this.user = 0
+    this.change0 = 0
+    this.about = 0
+  },
+  About() { this.about = 1 },
+  Announcement() { this.ShowAnnouncement = 1 },
+  ShowInput() {
+    this.show=!this.show
+  },
+  Back() {
+    this.about = 0
+    this.ShowAnnouncement = 0
+    this.reload = 0
+    if (this.bar_act === 3&&this.infof === 1){
+      this.infof = 0
+      this.show = false
+      this.currentFrdID = ''
+      this.talkwith = ''
+      this.privatelist = []
+      this.fetchFrdList()
+    }
+    if (this.change0 === 1) {
+      this.change0 = 0
+      this.input_textValue = ""
+      this.change_username = ""
+    } else {
+      this.user = 0
+    }
+  },
+  ShowAll(item) {
+    this.showall=!this.showall
+    if(!this.showall){
+      this.msg0={name:"",time:"",what:""}
+    }else{
+      this.msg0={name:item.name,time:item.time,what:item.what}
+    }
+  },
+  Intofrd(id){
+    this.infof = 1
+    this.currentFrdID = String(id)
+    this.show = false
+    const friend = this.friendlist.find(f => String(f.id) === String(id));
+    this.talkwith = friend ? friend.name : '未知用户';
+    this.fetchMessages('private', false)
+  },
+
+  // ================= 业务逻辑 =================
+  Reload() {
+    this.reload = 1
+    if (this.bar_act === 1 && this.ShowAnnouncement === 0) {
+      this.fetchMessages('public', true)
+    } else if (this.bar_act === 3) {
+      this.fetchFrdList()
+    } else {
+      this.reload = 0
+    }
+  },
+
+  Clear() {
+    this.messagelist = []
+    this._showTip(100)
+    console.info('缓存已清除')
+  },
+
+  User() {
+    this.user = 1
+    this._request(``, 'GET', null, (json) => {
+      if (json.status === 200) {
+        this.usernameinfo = json.data.user.display_name
+      }
+    })
+  },
+
+  A0() {
+    if (!this.change_username) {
+      this._showTip(400)
+      return
+    }
+    const encodedName = encodeURIComponent(this.change_username)
+    const url = ``
+    
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200) {
+        this._showTip(200.2)
+        this.change0 = 0
+        this.User()
+      }
+    })
+  },
+
+  Login() {
+    if (!this.username || !this.password) {
+      this._showTip(400)
+      return
+    }
+    const url = ``
+    
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200 && json.data && json.data.api_key) {
+        this.api_key = json.data.api_key
+        storage.set({ key: 'api_key', value: this.api_key })
+        this.login = 0
+        this.username = ""
+        this.password = ""
+        this.usertextValue = ""
+        this.passwordtextValue = ""
+        this.fetchMessages('public', false)
+        this._showTip(200.1)
+      } else {
+        this._showTip(401)
+      }
+    }, () => {
+      this._showTip(502)
+    })
+  },
+
+  SendPubMsg() {
+    if (!this.sendmessage || !this.sendmessage.trim()) {
+      this._showTip(400)
+      return
+    }
+    if (!this.api_key) {
+      this.login = 1
+      return
+    }
+  
+    const safeContent = encodeURIComponent(this.sendmessage.trim())
+    const safeKey = encodeURIComponent(this.api_key)
+    const url = ``
+    
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200) {
+        this._showTip(200)
+        this.textValue = ""
+        this.sendmessage = ""
+        this.fetchMessages('public', false)
+      } else {
+        this._showTip(400)
+      }
+    }, () => {
+      this._showTip(502)
+    })
+  },
+
+  SendPrvMsg() {
+    if (!this.sendmessagePrv || !this.sendmessagePrv.trim()) {
+      this._showTip(400)
+      return
+    }
+    if (!this.api_key) {
+      this.login = 1
+      return
+    }
+  
+    const safeContent = encodeURIComponent(this.sendmessagePrv.trim())
+    const safeKey = encodeURIComponent(this.api_key)
+    const safeID = encodeURIComponent(this.currentFrdID)
+    const url = ``
+    
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200) {
+        this._showTip(200)
+        this.textValuePrv = ""
+        this.sendmessagePrv = ""
+        this.fetchMessages('private', false)
+      } else {
+        this._showTip(400)
+      }
+    }, () => {
+      this._showTip(502)
+    })
+  },
+
+  // ================= 退出登录 =================
+  Logout() { this.really = true },
+  NLogout() { this.really = false },
+  
+  RLogout() {
+    const clearAndJump = () => {
+      this.api_key = ''
+      this.bar_act = 1
+      this.really = false
+      this.login = 1
+    }
+    
+    const safeDelete = (key, cb) => {
+      storage.delete({
+        key,
+        success: cb,
+        fail: (err) => {
+          console.warn(`删除 ${key} 失败或不存在:`, err)
+          cb()
+        }
+      })
+    }
+
+    safeDelete('api_key', () => {
+      safeDelete('token', clearAndJump)
+    })
+  },
+
+  // ================= 网络请求封装 =================
+  _request(url, method, data, onSuccess, onFail) {
+    fetch.fetch({
+      url,
+      method,
+      data,
+      success: (res) => {
+        try {
+          const json = (typeof res.data === 'string') ? JSON.parse(res.data) : res.data
+          onSuccess && onSuccess(json)
+        } catch (e) {
+          console.error('JSON 解析失败:', e)
+          onFail && onFail(e)
+        }
+      },
+      fail: (err) => {
+        console.error('请求失败:', err)
+        onFail && onFail(err)
+      }
+    })
+  },
+
+  fetchMessages(type, isRefresh = false) {
+    if (!this.api_key) return;
+    
+    let url = ``;
+    const lastId = type === 'public' ? this.publicLastId : this.privateLastId;
+    
+    if (isRefresh && lastId) {
+      url += `&last_id=${encodeURIComponent(lastId)}&limit=40`;
+    } else {
+      url += `&limit=40`;
+    }
+
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200 && json.data) {
+        const rawMessages = json.data.messages || [];
+        if (!Array.isArray(rawMessages) || rawMessages.length === 0) {
+          this.reload = 0;
+          return;
+        }
+
+        const mapped = rawMessages.map(msg => ({
+          id: msg.id,
+          name: msg.sdn || msg.sender || "用户",
+          time: this._formatTime(msg.created_at),
+          _ts: this._getTimestamp(msg),
+          what: msg.content,
+          sender_id: String(msg.sid)
+        }));
+
+        let finalList = [];
+        if (type === 'private') {
+          finalList = mapped.filter(msg => msg.sender_id === this.currentFrdID)
+        }else if (isRefresh) {
+          const existingIds = new Set(
+            (type === 'public' ? this.messagelist : this.privatelist).map(m => m.id)
+          );
+          const uniqueNew = mapped.filter(m => !existingIds.has(m.id));
+          finalList = [...uniqueNew, ...(type === 'public' ? this.messagelist : this.privatelist)];
+        } else {
+          finalList = mapped;
+        }
+
+        finalList.sort((a, b) => b._ts - a._ts);
+
+        if (finalList.length > 0) {
+          const newLastId = json.data.last_id || finalList[finalList.length - 1].id;
+          if (type === 'public') this.publicLastId = newLastId;
+          else this.privateLastId = newLastId;
+        }
+
+        if (type === 'public') this.messagelist = finalList;
+        else this.privatelist = finalList;
+      }
+      this.reload = 0;
+    }, () => {
+      this._showTip(502);
+    });
+  },
+
+  fetchGrpList() {
+    if(!this.api_key) return;
+    let url=``
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200 && json.data && json.data.groups) {
+        this.grouplist = json.data.groups.map(group => ({
+          group_id: group.group_id,
+          name: group.name,
+          is_owner: !!group.is_owner,
+          member_count: group.member_count,
+        }))
+        this.error=200
+      } else {
+        this.grouplist = [];
+        console.warn('获取群聊列表失败或数据为空:', json);
+        this.error=401
+      }
+      this.reload = 0;
+    }, () => {
+      this._showTip(502);
+      this.reload = 0;
+    });
+  },
+
+  fetchFrdList() {
+    if(!this.api_key) return;
+    let url=``
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200 && json.data && json.data.friends) {
+        this.friendlist = json.data.friends.map(friends => ({
+          name: friends.display_name,
+          id: friends.id,
+          online: !!friends.is_online,
+        }));
+      } else {
+        this.friendlist = [];
+        console.warn('获取好友列表失败或数据为空:', json);
+      }
+      this.reload = 0;
+    }, () => {
+      this._showTip(502);
+      this.reload = 0;
+    });
+  },
+
+  /** 统一提示消息管理 */
+  _showTip(code) {
+    this.reload = code
+    if (code !== 1) {
+      setTimeout(() => { this.reload = 0 }, 1500)
+    }
+  },
+
+  /** 格式化时间为 HH:mm */
+  _formatTime(rawTime) {
+    if (!rawTime) return "";
+    
+    let date = null;
+    
+    if (typeof rawTime === 'number' || /^\d+$/.test(String(rawTime))) {
+      let ts = Number(rawTime);
+      ts = ts < 1e12 ? ts * 1000 : ts;
+      date = new Date(ts);
+    } else {
+      const safeStr = String(rawTime).replace(' ', 'T');
+      date = new Date(safeStr);
+    }
+
+    if (date && !isNaN(date.getTime())) {
+      return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    }
+    
+    return String(rawTime).substring(11, 16) || "";
+  },
+
+  /** 获取消息时间戳（用于排序） */
+  _getTimestamp(msg) {
+    if (msg.ts) {
+      return Number(msg.ts) < 1e12 ? Number(msg.ts) * 1000 : Number(msg.ts);
+    }
+    const rawTime = msg.created_at || "";
+    if (/^\d+$/.test(String(rawTime))) {
+      let ts = Number(rawTime);
+      return ts < 1e12 ? ts * 1000 : ts;
+    }
+    const safeStr = String(rawTime).replace(' ', 'T');
+    const d = new Date(safeStr);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  },
+}
+</script>
+
+<style>
+  .stack{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+  }
+  .main{
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    position: relative;
+  }
+  .top{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #000;
+    flex-shrink: 0;
+  }
+  .topl{
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+  }
+  .title{
+    font-size: 30px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .topr{
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .time{
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .front{
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    height: 44px;
+    background-color: #000;
+    flex-shrink: 0;
+  }
+  .mbtnl{
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .mbtnr{
+    font-size: 24px;
+    font-weight: bold;
+    color: #0077ff;
+  }
+  .reloadtext{
+    font-size: 18px;
+    color: #7bb9ff;
+  }
+  .reloadtext-sus{
+    font-size: 18px;
+    color: rgb(0, 255, 21);
+  }
+  .reloadtext-wran{
+    font-size: 18px;
+    color: #ff0000;
+  }
+  .mid{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px;
+  }
+  .mid0{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px 86px 10px;
+  }
+  .midlogin{
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 80px;
+    padding-left: 10px;
+  }
+  .message{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    width: 100%;
+    height: 90px;
+    margin-bottom: 8px;
+    padding: 0 10px 0 10px;
+  }
+  .message0{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    width: 90%;
+    height: 110px;
+    padding: 10px 10px;
+  }
+  .message1{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
+    height: 80px;
+  }
+  .messagetop{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .messagewho{
+    font-size: 22px;
+    font-weight: bold;
+    color: #0077ff;
+  }
+  .messagewhat{
+    font-size: 26px;
+    color: #ffffff;
+    lines: 1;
+    text-overflow: clip;
+  }
+  .messagewhat0{
+    font-size: 26px;
+    color: #ffffff;
+  }
+  .messagewhen{
+    font-size: 20px;
+    color: #757575;
+  }
+  .messagewhen0{
+    font-size: 20px;
+    color: green;
+  }
+  .under{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0px 20px;
+    position: fixed;
+    top: 360%;
+    width: 100%;
+    height: 110px;
+  }
+  .bar{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    width: 100%;
+    height: 60px;
+    padding: 0 5px;
+    border-radius: 20px;
+    background-color: #7575758e;
+  }
+  .bar-0{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    width: 100%;
+  }
+  .barlogin{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    position: fixed;
+    width: 100%;
+    height: 60px;
+    padding: 15px 10px;
+    border-radius: 20px;
+    background-color: #7575758e;
+  }
+  .baritem{
+    font-size: 30px;
+  }
+  .bartext{
+    font-size: 24px;
+    color: #ffffff;
+  }
+  .loginbartext{
+    font-size: 24px;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  .baract{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    width: 70px;
+    height: 50px;
+    border-radius: 16px;
+    background-color: #0077ff;
+  }
+  .barnoact{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    width: 70px;
+    height: 50px;
+  }
+  .grouplist{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 90%;
+  }
+  .friendlist{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 90%;
+  }
+  .settings-u{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+  }
+  .settings{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 94%;
+    min-height: 100px;
+  }
+  .settings-item{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 94%;
+    height: 60px;
+  }
+  .settings-item0{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 94%;
+    height: 60px;
+  }
+  .settings-item-logout-say{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1A1A1A;
+    border-radius: 16px;
+    padding: 20px 30px;
+    width: 90%;
+    height: 50%;
+  }
+  .settings-item-logout-say-btn{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1A1A1A;
+  }
+  .mask{
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+  }
+  .maskinput{
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding-top: 100px;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .vertext{
+    font-size: 30px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .version{
+    font-size: 24px;
+    color: #757575;
+  }
+  .vertext-s{
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .vertext-ss{
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .vertext-m{
+    font-size: 26px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .vertext-m-yellow{
+    font-size: 26px;
+    font-weight: bold;
+    color: #ffd900;
+  }
+  .vertext-m-red{
+    font-size: 26px;
+    font-weight: bold;
+    color: #ff0000;
+  }
+  .vertext-s-red{
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff0000;
+  }
+  .dev{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  .dev-name{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .opition{
+    font-size: 16px;
+    color: #757575
+  }
+  .more{
+    font-size: 18px;
+    font-style: italic;
+    color: #757575;
+  }
+  .icon-1{
+    width: 60px;
+    height: 60px;
+    margin-right: 5px;
+    border-radius: 100%;
+  }
+  .scroll{
+    flex: 1;
+    width: 100%;
+    background-color: #000;
+  }
+  .input-item{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 94%;
+    height: 60px;
+  }
+  .input-item-0{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 2px;
+    background-color: #1A1A1A8e;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 62%;
+    height: 45px;
+    border-width: 1px;
+    border-color: #757575;
+  }
+  .input-item-0-s{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2px;
+    background-color: #1A1A1A8e;
+    border-radius: 12px;
+    width: 100%;
+    height: 20px;
+    border-width: 1px;
+    border-color: #757575;
+  }
+  .loginunder{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  .copythat{
+    margin-bottom: 10px;
+    background-color: #1A1A1A;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 70px;
+    height: 60px;
+  }
+  .copythat0{
+    margin-bottom: 2px;
+    background-color: #1A1A1A8e;
+    border-radius: 12px;
+    padding: 5px 10px;
+    width: 70px;
+    height: 45px;
+    border-width: 1px;
+    border-color: #757575;
+  }
+  .IO{
+    margin-bottom: 2px;
+    background-color: #1A1A1A8e;
+    border-radius: 12px;
+    padding: 5px 5px;
+    width: 36px;
+    height: 45px;
+    border-width: 1px;
+    border-color: #757575;
+  }
+  .text-run-scroll {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+</style>
