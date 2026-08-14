@@ -1,6 +1,6 @@
 {
-  "package": "com.fix.chat",
-  "name": "Chat",
+  "package": "com.fix.chat-s",
+  "name": "Chat极简版",
   "versionName": "1.0.0",
   "versionCode": 1,
   "minPlatformVersion": 1000,
@@ -10,44 +10,31 @@
   ],
   "features": [
 	{
-		"name": "system.router"
-	},
-	{
-		"name": "system.device"
-	},
-	{
 		"name": "system.fetch"
 	},
 	{
 		"name": "system.storage"
 	},
 	{
-		"name": "system.crypto"
-	},
-	{
 		"name": "system.app"
 	},
 	{
 		"name": "system.vibrator"
+	},
+	{
+		"name": "system.device"
 	}
 ],
   "config": {
     "logLevel": "log",
-    "designWidth": "device-width",
-	"background": {
-	"features": []
-	}
+    "designWidth": "device-width"
   },
   "router": {
     "entry": "pages/index",
     "pages": {
-	"pages/index": {
-		"component": "index"
-	}
-}
-  },
-	"display": {
-	"backgroundColor": "black"
-	},
-	"permissions": []
+      "pages/index": {
+        "component": "index"
+      }
+    }
+  }
 }
