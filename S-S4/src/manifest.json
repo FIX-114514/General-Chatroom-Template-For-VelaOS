@@ -1,0 +1,40 @@
+{
+  "package": "com.fix.chat-s",
+  "name": "Chat极简版",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minPlatformVersion": 1000,
+  "icon": "/common/logo.png",
+  "deviceTypeList": [
+    "watch"
+  ],
+  "features": [
+	{
+		"name": "system.fetch"
+	},
+	{
+		"name": "system.storage"
+	},
+	{
+		"name": "system.app"
+	},
+	{
+		"name": "system.vibrator"
+	},
+	{
+		"name": "system.device"
+	}
+],
+  "config": {
+    "logLevel": "log",
+    "designWidth": "device-width"
+  },
+  "router": {
+    "entry": "pages/index",
+    "pages": {
+      "pages/index": {
+        "component": "index"
+      }
+    }
+  }
+}
