@@ -7,13 +7,15 @@
           <text class="title" if="{{login===1}}" value="登录以继续"/>
         </div>
         <div class="topl" if="{{login===0}}">
-          <text class="title" if="{{title===1&&ShowAnnouncement===0}}" value="聊天室"/>
+          <text class="title" if="{{title===1&&ShowAnnouncement===0}}" value="Chat"/>
+          <text class="title" if="{{title===2}}" value="群组"/>
           <text class="title" if="{{title===3&&infof===0}}" value="好友"/>
           <text class="text-run-scroll" if="{{title===3 && infof===1}}" value="{{talkwith}}"/>
           <text class="title" if="{{title===4&&about===0&&user===0}}" value="设置"/>
           <text class="title" if="{{title===4&&about===1}}" value="关于"/>
           <text class="title" if="{{title===1&&ShowAnnouncement===1}}" value="公告"/>
-          <text class="title" if="{{title===4&&user===1}}" value="个人信息"/>
+          <text class="title" if="{{title===4&&user===1&&change0===0}}" value="个人信息"/>
+          <text class='title' if="{{title===4&&change0===1}}" value="更改用户名"/>
         </div>
         <div class="topr">
           <text class="time" value="{{time}}"/>
@@ -22,17 +24,23 @@
 
       <div class="front" if="{{login===0}}">
         <text class="mbtnl" if="{{bar_act===1&&ShowAnnouncement===0}}" value="公告" @click="Announcement"/>
-        <text class="mbtnl" if="{{bar_act===3&&infof===0}}" value=""/>
-        <text class="mbtnl" if="{{bar_act===1&&ShowAnnouncement===1||bar_act===4&&(about===1||user===1)||bar_act===3&&infof===1}}" value="返回" @click="Back"/>
+        <text class="mbtnl" if="{{bar_act===2}}" value="更多" @click="Joingroup"/>
+        <text class="mbtnl" if="{{bar_act===3&&infof===0&&moreF===0}}" value="更多" @click="MoerF"/>
+        <text class="mbtnl" if="{{bar_act===1&&ShowAnnouncement===1||bar_act===4&&(about===1||user===1)||bar_act===3&&(infof===1||moreF==1||addinfo===1)}}" value="返回" @click="Back"/>
         <text class="mbtnl" if="{{title===4}}"/>
         <text class="reloadtext" if="{{reload===1}}" value="刷新中"/>
         <text class='reloadtext-sus' if="{{reload===100}}" value="清除缓存成功"/>
         <text class='reloadtext-sus' if="{{reload===200}}" value="发送成功"/>
         <text class='reloadtext-sus' if="{{reload===200.1}}" value="登录成功"/>
+        <text class='reloadtext-sus' if="{{reload===200.2}}" value="修改成功"/>
+        <text class='reloadtext-sus' if="{{reload===200.3}}" value="发送请求成功"/>
+        <text class='reloadtext-sus' if="{{reload===200.4}}" value="添加成功"/>
         <text class='reloadtext-wran' if="{{reload===400}}" value="内容不能为空"/>
         <text class='reloadtext-wran' if="{{reload===401}}" value="用户名或密码错误"/>
+        <text class='reloadtext-wran' if="{{reload===402}}" value="用户不存在"/>
         <text class='reloadtext-wran' if="{{reload===502}}" value="网络错误"/>
-        <text class="mbtnr" if="{{bar_act===1||infof===1}}" value="刷新" @click="Reload"/>
+        <text class='reloadtext-wran' if="{{reload===503}}" value="状态码错误"/>
+        <text class="mbtnr" if="{{bar_act!==4&&(user===1||change0===0||addinfo===0)}}" value="刷新" @click="Reload"/>
         <text class="mbtnr" if="{{title===4}}"/>
       </div>
       <div class="front" if="{{login===1}}"></div>
@@ -54,6 +62,9 @@
               </div>
             </div>
           </div>
+          <div class="midlogin" if="{{bar_act===2}}">
+            <text class="vertext" value="网站未提供对应接口"/>
+          </div>
         </div>
       </div>
 
@@ -63,22 +74,34 @@
         <list class="mid0" bounces="true" if="{{bar_act===1&&ShowAnnouncement===0}}">
           <list-item for="{{messagelist}}" class="message" type="msg" @click="ShowAll($item)">
             <div class="messagetop">
-              <text class="messagewho">{{$item.name}}</text>
+              <text class="messagewho">{{$item.name||"用户"}}</text>
               <text class="messagewhen">{{$item.time}}</text>
             </div>
             <text class="messagewhat">{{$item.what}}</text>
           </list-item>
         </list>
 
-        <list class="mid0" if="{{bar_act===3&&infof===0}}">
+        <list class="mid0" if="{{bar_act===2}}">
+          <list-item for="{{grouplist}}" class='message' type="grp" @click="IntoGrp($item.group_id)">
+            <div class='messagetop'>
+              <text class='messagewho'>{{$item.group_id}}</text>
+              <text class='messagewhen'>{{$item.member_count}}人</text>
+            </div>
+            <text class='messagewhat'>{{$item.name}}</text>
+          </list-item>
+        </list>
+
+        <list class="mid0" if="{{bar_act===3 && infof===0 && moreF===0}}">
           <list-item for="{{friendlist}}" class='message' type="frd" @click="Intofrd($item.id)">
             <div class='messagetop'>
               <text class='messagewho'>{{$item.name}}</text>
+              <text class='messagewhen0'if="{{$item.online}}">在线</text>
+              <text class='messagewhen'if="{{!$item.online}}">离线</text>
             </div>
             <text class='more'>{{$item.id}}</text>
           </list-item>
         </list>
-        <list class="mid0" bounces="true" if="{{bar_act===3&&infof===1}}">
+        <list class="mid0" bounces="true" if="{{bar_act===3 && infof===1 && moreF===0}}">
           <list-item for="{{privatelist}}" class="message" type="pvt" @click="ShowAll($item)">
             <div class="messagetop">
               <text class="messagewho">{{$item.name}}</text>
@@ -87,6 +110,65 @@
             <text class="messagewhat">{{$item.what}}</text>
           </list-item>
         </list>
+
+        <div class="settings-u"if="{{bar_act===3 && moreF===1 && addinfo===0}}">
+          <div class="settings-item" @click="Add">
+            <div class="dev">
+              <text class="vertext-m" value="发送请求"/>
+            </div>
+          </div>
+          <div class="settings-item" @click="Request0">
+            <div class="dev">
+              <text class="vertext-m" value="查看请求"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="scroll" if="{{addinfo===1}}">
+          <div class="midlogin">
+            <text class="vertext" value="对方ID"/>
+            <div class="input-item" @click="changeState_11">
+              <text class="vertext-s" value="{{addValue}}"/>
+            </div>
+            <div class="loginunder">
+              <div class="copythat" @click="SendRequest">
+                <text class="loginbartext" value="发送"/>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <list class="mid0" if="{{addinfo===2&&moreR===0}}">
+          <list-item for="{{pendingRequests}}" class="message" type="req" @click="ShowMore">
+            <div class="messagetop">
+              <text class="messagewho">{{$item.from_name}}</text>
+            </div>
+            <text class="more">{{$item.from_id}}</text>
+          </list-item>
+        </list>
+        <div class="scroll" if="{{addinfo===2&&moreR===1}}">
+          <div class="midlogin">
+            <text class="vertext" value="发送请求的用户"/>
+            <div class="input-item">
+              <text class="vertext-s" value="{{pendingRequests.from_name}}"/>
+            </div>
+            <div class="loginunder">
+              <div class="copythat" @click="Accept">
+                <text class="loginbartext" value="同意"/>
+              </div>
+            </div>
+            <div class="loginunder">
+              <div class="copythat" @click="Refuse">
+                <text class="loginbartext" value="拒绝"/>
+              </div>
+            </div>
+            <div class="loginunder">
+              <div class="copythat" @click="BalckList">
+                <text class="loginbartext" value="加入黑名单"/>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="settings-u"if="{{bar_act===4 && about===0 && user===0}}">
           <div class="settings-item" @click="User">
@@ -104,7 +186,7 @@
           </div>
         </div>
 
-        <div class="settings-u" if="{{bar_act===4&&user===1}}">
+        <div class="settings-u" if="{{bar_act===4&&user===1&&change0===0}}">
           <div class="settings-item0">
             <text class="vertext" value="用户名"/>
           </div>
@@ -164,6 +246,14 @@
           </div>
         </div>
         <div class="baritem">
+          <div class="baract" if="{{bar_act===2}}">
+            <text class="bartext" value="群组"/>
+          </div>
+          <div class="barnoact" @click="grouppage" else>
+            <text class="bartext" value="群组"/>
+          </div>
+        </div>
+        <div class="baritem">
           <div class="baract" if="{{bar_act===3}}">
             <text class="bartext" value="好友"/>
           </div>
@@ -187,6 +277,14 @@
           </div>
           <div class="barnoact" @click="mainpage" else>
             <text class="bartext" value="登录"/>
+          </div>
+        </div>
+        <div class="baritem">
+          <div class="baract" if="{{bar_act===2}}">
+            <text class="bartext" value="注册"/>
+          </div>
+          <div class="barnoact" @click="grouppage" else>
+            <text class="bartext" value="注册"/>
           </div>
         </div>
       </div>
@@ -227,6 +325,7 @@
         <text class="vertext" if="{{bar_act===2}}" value="{{textValueGrp}}_"/>
         <text class="vertext" if="{{bar_act===3&&infof===1}}" value="{{textValuePrv}}_"/>
         <text class="vertext" if="{{user===1}}" value="{{input_textValue}}_"/>
+        <text class="vertext" if="{{addinfo===1}}" value="{{addValue}}_"/>
       </div>
     </div>
 
@@ -271,29 +370,39 @@ export default {
     really: false,
     ShowAnnouncement: 0,
     user: 0,
+    change0: 0,
     infof: 0,
+    moreF: 0,
     addinfo: 0,
     error: 0,
     hide: true,
     show: false,
     showall: false,
+    moreR: 0,
     time: "",
     // 数据与缓存
     api_key: "api_4f37a320ea8b30886e66cb8cc8c561af",
     username: "",
     password: "",
     sendmessage: "",
+    sendmessageGrp: "",
     sendmessagePrv: "",
     groupid: "",
     publicLastId: '',
     privateLastId: '',
     currentFrdID: '',
+    addFrdID: '',
+    addValue: '',
     talkwith: '',
+    request_id: '',
+    response: '',
     messagelist: [],
     privatelist: [],
+    grouplist: [],
     friendlist: [],
     pendingRequests: [],
     msg0: {name:"",time:"",what:""},
+    res0: "",
     // 输入相关
     inputswitch: 0,
     usertextValue: "",
@@ -375,7 +484,10 @@ export default {
       [INPUT_STATE.USERNAME]: 'usertextValue',
       [INPUT_STATE.PASSWORD]: 'passwordtextValue',
       [INPUT_STATE.CHAT_MSG]: 'textValue',
+      [INPUT_STATE.CHAT_GRPMSG]: 'textValueGrp',
       [INPUT_STATE.CHAT_PRVMSG]: 'textValuePrv',
+      [INPUT_STATE.ADD_FRD_ID]: 'addValue',
+      [INPUT_STATE.CHANGE_NAME]: 'input_textValue'
     }
     const field = map[this.inputswitch]
     if (field) {
@@ -389,7 +501,10 @@ export default {
       [INPUT_STATE.USERNAME]: 'usertextValue',
       [INPUT_STATE.PASSWORD]: 'passwordtextValue',
       [INPUT_STATE.CHAT_MSG]: 'textValue',
+      [INPUT_STATE.CHAT_GRPMSG]: 'textValueGrp',
       [INPUT_STATE.CHAT_PRVMSG]: 'textValuePrv',
+      [INPUT_STATE.ADD_FRD_ID]: 'addValue',
+      [INPUT_STATE.CHANGE_NAME]: 'input_textValue'
     }
     const field = map[this.inputswitch]
     if (field) {
@@ -401,7 +516,10 @@ export default {
     if (this.inputswitch === INPUT_STATE.USERNAME) this.username = this.usertextValue
     if (this.inputswitch === INPUT_STATE.PASSWORD) this.password = this.passwordtextValue
     if (this.inputswitch === INPUT_STATE.CHAT_MSG) this.sendmessage = this.textValue
+    if (this.inputswitch === INPUT_STATE.CHAT_GRPMSG) this.sendmessageGrp = this.textValueGrp
     if (this.inputswitch === INPUT_STATE.CHAT_PRVMSG) this.sendmessagePrv = this.textValuePrv
+    if (this.inputswitch === INPUT_STATE.ADD_FRD_ID) this.addFrdID = this.addValue
+    if (this.inputswitch === INPUT_STATE.CHANGE_NAME) this.change_username = this.input_textValue
   },
   _toggleKeyboard(targetState) {
     if (this.hide) {
@@ -413,27 +531,49 @@ export default {
     }
   },
   changeState() { this._toggleKeyboard(INPUT_STATE.CHAT_MSG) },
+  changeState_1() { this._toggleKeyboard(INPUT_STATE.CHAT_GRPMSG) },
   changeState_2() { this._toggleKeyboard(INPUT_STATE.CHAT_PRVMSG) },
+  changeState_11() { this._toggleKeyboard(INPUT_STATE.ADD_FRD_ID)},
   changeState0() { this._toggleKeyboard(INPUT_STATE.USERNAME) },
   changeState1() { this._toggleKeyboard(INPUT_STATE.PASSWORD) },
+  changeStateU() { this._toggleKeyboard(INPUT_STATE.CHANGE_NAME) },
   // ================= 页面导航 =================
   mainpage() {
     this.title = 1
     this.bar_act = 1
     this.infof = 0
+    this.moreF = 0
+    this.moreR = 0
     this.addinfo = 0
     this.ShowAnnouncement = 0
     this.user = 0
+    this.change0 = 0
     this.about = 0
     this.fetchMessages('public',true)
+  },
+  grouppage() {
+    this.title = 2
+    this.bar_act = 2
+    this.infof = 0
+    this.moreF = 0
+    this.moreR = 0
+    this.addinfo = 0
+    this.ShowAnnouncement = 0
+    this.user = 0
+    this.change0 = 0
+    this.about = 0
+    this.fetchGrpList()
   },
   friendpage() {
     this.title = 3
     this.bar_act = 3
     this.infof = 0
+    this.moreF = 0
+    this.moreR = 0
     this.addinfo = 0
     this.ShowAnnouncement = 0
     this.user = 0
+    this.change0 = 0
     this.about = 0
     this.fetchFrdList()
   },
@@ -441,9 +581,12 @@ export default {
     this.title = 4
     this.bar_act = 4
     this.infof = 0
+    this.moreF = 0
+    this.moreR = 0
     this.addinfo = 0
     this.ShowAnnouncement = 0
     this.user = 0
+    this.change0 = 0
     this.about = 0
   },
   About() { this.about = 1 },
@@ -453,9 +596,9 @@ export default {
   },
   Back() {
     this.about = 0
-    this.user = 0
     this.ShowAnnouncement = 0
     this.reload = 0
+    this.addinfo = 0
     if (this.bar_act === 3 && this.infof === 1){
       this.infof = 0
       this.show = false
@@ -463,6 +606,29 @@ export default {
       this.talkwith = ''
       this.privatelist = []
       this.fetchFrdList()
+    }
+    if (this.moreF === 1 && this.addinfo === 1){
+      this.addinfo = 0
+      this.addFrdID = ''
+    }
+    if (this.moreF === 1 && this.addinfo === 2) {
+      this.addinfo = 0
+      this.pendingRequests = []
+    }
+    if (this.moreF === 1 && this.addinfo === 2 && this.moreR === 1) {
+      this.moreR = 0
+      this.pendingRequests = []
+      this.Request0()
+    }
+    if(this.moreF === 1 && this.addinfo === 0 && this.moreR === 0){
+      this.moreF = 0
+    }
+    if (this.change0 === 1) {
+      this.change0 = 0
+      this.input_textValue = ""
+      this.change_username = ""
+    } else {
+      this.user = 0
     }
   },
   ShowAll(item) {
@@ -481,15 +647,24 @@ export default {
     this.talkwith = friend ? friend.name : '未知用户';
     this.fetchMessages('private', false)
   },
+  ShowMore(item) {
+    this.moreR = 1
+    if(!this.showall){
+      this.res0 = ""
+    }else{
+      this.res0 = item.from_name
+    }
+  },
   // ================= 业务逻辑 =================
+  Add() {
+    this.addinfo = 1
+  },
   Reload() {
     this.reload = 1
     if (this.bar_act === 1 && this.ShowAnnouncement === 0) {
       this.fetchMessages('public', true)
     } else if (this.bar_act === 3) {
       this.fetchFrdList()
-    } else if (this.bar_act === 3 && this.infof === 1) {
-      this.fetchMessages('private', true)
     } else {
       this.reload = 0
     }
@@ -504,6 +679,21 @@ export default {
     this._request(`${BASE_URL}/ac.php?api_key=${this.api_key}&action=get_profile`, 'GET', null, (json) => {
       if (json.status === 200) {
         this.usernameinfo = json.data.user.display_name
+      }
+    })
+  },
+  A0() {
+    if (!this.change_username) {
+      this._showTip(400)
+      return
+    }
+    const encodedName = encodeURIComponent(this.change_username)
+    const url = `${BASE_URL}/ac.php?api_key=${this.api_key}&action=update_profile&display_name=${encodedName}`
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200) {
+        this._showTip(200.2)
+        this.change0 = 0
+        this.User()
       }
     })
   },
@@ -581,6 +771,48 @@ export default {
     }, () => {
       this._showTip(502)
     })
+  },
+  MoerF() {
+    this.moreF = 1
+  },
+  SendRequest() {
+    let url = `${BASE_URL}/ac.php?api_key=${this.api_key}&action=send_friend_request&target_id=${this.addFrdID}`
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200) {
+        this._showTip(200.3)
+        this.addFrdID = ''
+        this.addinfo = 0
+      } else {
+        this._showTip(402)
+      }
+    }, () => {
+      this._showTip(503)
+    })
+  },
+  Request0() {
+    if (!this.api_key) return;
+    this.reload = 1;
+    const url = `${BASE_URL}/ac.php?api_key=${this.api_key}&action=get_friends`;
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200 && json.data && json.data.pending_requests) {
+        this.pendingRequests = json.data.pending_requests.map(req => ({
+          from_name: req.from_name,
+          from_id: req.from_id,
+        }));
+        if (this.pendingRequests.length > 0) {
+          this.addinfo = 2;
+          this.request_id = this.pendingRequests[0].request_id;
+        } else {
+          this._showTip(0);
+        }
+      } else {
+        this._showTip(502);
+      }
+      this.reload = 0;
+    }, () => {
+      this._showTip(502);
+      this.reload = 0;
+    });
   },
   // ================= 退出登录 =================
   Logout() { this.really = true },
@@ -677,6 +909,28 @@ export default {
       this._showTip(502);
     });
   },
+  fetchGrpList() {
+    if(!this.api_key) return;
+    let url=`https://chat.yxinoo.cn/qunliao/api.php?api_key=${this.api_key}&action=my_groups`
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200 && json.data && json.data.groups) {
+        this.grouplist = json.data.groups.map(group => ({
+          group_id: group.group_id,
+          name: group.name,
+          is_owner: !!group.is_owner,
+          member_count: group.member_count,
+        }))
+        this.error=200
+      } else {
+        this.grouplist = [];
+        console.warn('获取群聊列表失败或数据为空:', json);
+      }
+      this.reload = 0;
+    }, () => {
+      this._showTip(502);
+      this.reload = 0;
+    });
+  },
   fetchFrdList() {
     if(!this.api_key) return;
     let url=`${BASE_URL}/ac.php?api_key=${this.api_key}&action=get_friends`
@@ -690,6 +944,46 @@ export default {
       } else {
         this.friendlist = [];
         console.warn('获取好友列表失败或数据为空:', json);
+      }
+      this.reload = 0;
+    }, () => {
+      this._showTip(502);
+      this.reload = 0;
+    });
+  },
+  // 接受好友请求
+  Accept() {
+    if (!this.request_id) return;
+    const url = `${BASE_URL}/ac.php?api_key=${this.api_key}&action=handle_friend_request&request_id=${this.request_id}&response=accept`;
+    this._handleFriendAction(url, 'accept');
+  },
+  // 拒绝好友请求
+  Refuse() {
+    if (!this.request_id) return;
+    const url = `${BASE_URL}/ac.php?api_key=${this.api_key}&action=handle_friend_request&request_id=${this.request_id}&response=reject`;
+    this._handleFriendAction(url, 'reject');
+  },
+  // 拉黑用户
+  BalckList() {
+    if (!this.request_id) return;
+    const url = `${BASE_URL}/ac.php?api_key=${this.api_key}&action=handle_friend_request&request_id=${this.request_id}&response=block`;
+    this._handleFriendAction(url, 'block');
+  },
+  // 统一处理好友请求操作的封装
+  _handleFriendAction(url, actionType) {
+    this.reload = 1;
+    this._request(url, 'GET', null, (json) => {
+      if (json.status === 200) {
+        this._showTip(200.4);
+        this.pendingRequests = this.pendingRequests.filter(r => r.request_id !== this.request_id);
+        if (this.pendingRequests.length > 0) {
+          this.request_id = this.pendingRequests[0].request_id;
+        } else {
+          this.addinfo = 0;
+          this.request_id = '';
+        }
+      } else {
+        this._showTip(400);
       }
       this.reload = 0;
     }, () => {
@@ -969,7 +1263,7 @@ export default {
     align-items: center;
     justify-content: center;
     position: fixed;
-    width: 100px;
+    width: 70px;
     height: 50px;
     border-radius: 16px;
     background-color: #0077ff;
@@ -979,7 +1273,7 @@ export default {
     align-items: center;
     justify-content: center;
     position: fixed;
-    width: 100px;
+    width: 70px;
     height: 50px;
   }
   .settings-u{
