@@ -230,7 +230,7 @@
 import fetch from "@system.fetch"
 import storage from "@system.storage"
 import app from "@system.app"
-const BASE_URL = ""
+const BASE_URL = "https://chat.yxinoo.cn/api"
 // 输入框状态枚举
 const INPUT_STATE = {
   NONE: 0,
@@ -270,7 +270,6 @@ export default {
     messagelist: [],
     privatelist: [],
     friendlist: [],
-    pendingRequests: [],
     msg0: {name:"",time:"",what:""},
     // 输入相关
     inputswitch: 0,
@@ -330,8 +329,8 @@ export default {
     storage.get({
       key: "api_key",
       success: (data) => {
-        if (data && data.value) {
-          this.api_key = data.value
+        if (data) {
+          this.api_key = data
           this.login = 0
           this.fetchMessages('public', false)
         } else {
@@ -441,7 +440,7 @@ export default {
     this.user = 0
     this.ShowAnnouncement = 0
     this.reload = 0
-    if (this.title === 3 && this.infof === 1){
+    if (this.infof === 1){
       this.infof = 0
       this.show = false
       this.currentFrdID = ''
@@ -480,13 +479,15 @@ export default {
     }
   },
   Clear() {
+    this.friendlist = []
     this.messagelist = []
+    this.privatelist = []
     this._showTip(100)
     console.info('缓存已清除')
   },
   User() {
     this.user = 1
-    this._request(``, 'GET', null, (json) => {
+    this._request(`${BASE_URL}/ac.php?api_key=${this.api_key}&action=get_profile`, 'GET', null, (json) => {
       if (json.status === 200) {
         this.usernameinfo = json.data.user.display_name
       }
@@ -497,7 +498,7 @@ export default {
       this._showTip(400)
       return
     }
-    const url = ``
+    const url = `${BASE_URL}/login.php?username=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`
     this._request(url, 'GET', null, (json) => {
       if (json.status === 200 && json.data && json.data.api_key) {
         this.api_key = json.data.api_key
@@ -507,7 +508,7 @@ export default {
         this.password = ""
         this.usertextValue = ""
         this.passwordtextValue = ""
-        this.mainpage()
+        this.fetchMessages('public', false)
         this._showTip(200.1)
       } else {
         this._showTip(401)
@@ -527,7 +528,7 @@ export default {
     }
     const safeContent = encodeURIComponent(this.sendmessage.trim())
     const safeKey = encodeURIComponent(this.api_key)
-    const url = ``
+    const url = `${BASE_URL}/ac.php?api_key=${safeKey}&action=send_message&content=${safeContent}`
     this._request(url, 'GET', null, (json) => {
       if (json.status === 200) {
         this._showTip(200)
@@ -553,7 +554,7 @@ export default {
     const safeContent = encodeURIComponent(this.sendmessagePrv.trim())
     const safeKey = encodeURIComponent(this.api_key)
     const safeID = encodeURIComponent(this.currentFrdID)
-    const url = ``
+    const url = `${BASE_URL}/ac.php?api_key=${safeKey}&action=send_message&content=${safeContent}&recipient_id=${safeID}`
     this._request(url, 'GET', null, (json) => {
       if (json.status === 200) {
         this._showTip(200)
@@ -573,12 +574,15 @@ export default {
   RLogout() {
     const clearAndJump = () => {
       this.api_key = ''
+      this.privatelist = []
+      this.messagelist = []
+      this.friendlist = []
       this.title = 1
       this.really = false
       this.login = 1
     }
     const safeDelete = (key, cb) => {
-      storage.delete({
+      storage.clear({
         key,
         success: cb,
         fail: (err) => {
@@ -614,12 +618,12 @@ export default {
   },
   fetchMessages(type, isRefresh = false) {
     if (!this.api_key) return;
-    let url = ``;
+    let url = `${BASE_URL}/ac.php?api_key=${this.api_key}&action=get_messages&type=${type}&custom_time=2026-01-01-00-00-00`;
     const lastId = type === 'public' ? this.publicLastId : this.privateLastId;
     if (isRefresh && lastId) {
-      url += ``;
+      url += `&last_id=${encodeURIComponent(lastId)}&limit=40`;
     } else {
-      url += ``;
+      url += `&limit=40`;
     }
     this._request(url, 'GET', null, (json) => {
       if (json.status === 200 && json.data) {
@@ -664,7 +668,7 @@ export default {
   },
   fetchFrdList() {
     if(!this.api_key) return;
-    let url=``
+    let url=`${BASE_URL}/ac.php?api_key=${this.api_key}&action=get_friends`
     this._request(url, 'GET', null, (json) => {
       if (json.status === 200 && json.data && json.data.friends) {
         this.friendlist = json.data.friends.map(friends => ({
